@@ -1,14 +1,13 @@
-from re import sub
 import subprocess
 from pathlib import Path
 
 import pytest
-from py4gh import __version__
+# from py4gh import __version__
 from py4gh.utility import decrypt_files, encrypt_files, get_files
 
 
-def test_version():
-    assert __version__ == "0.1.0"
+# def test_version():
+#     assert __version__ == "0.1.0"
 
 
 @pytest.fixture(scope="session")

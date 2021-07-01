@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-import subprocess
+from subprocess import PIPE, Popen
 from typing import List, Tuple
 
 from tqdm import tqdm
@@ -26,7 +26,7 @@ def add_suffix(filename: str, suffix: str = "c4gh") -> str:
 
 def decrypt_files(
     key: str, files: List[str]
-) -> Tuple[List[Tuple[str, int]], List[str]]:
+) -> Tuple[List[Tuple[str, str]], List[str]]:
     failed = []
     success = []
 
@@ -34,24 +34,25 @@ def decrypt_files(
         out_file = remove_suffix(file, ".c4gh")
         with open(out_file, "w") as outf, open(file, "r") as inf:
             logging.info(f"processing file: {file}")
-            proc = subprocess.run(
+            proc = Popen(
                 ["crypt4gh", "decrypt", "--sk", key],
                 stdin=inf,
                 stdout=outf,
                 shell=False,
-                stderr=subprocess.STDOUT,
+                stderr=PIPE,
             )
             logging.info(f"output: {proc}")
+            _, err = proc.communicate()
             if proc.returncode == 0:
                 success.append(file)
             else:
-                failed.append((file, proc.returncode))
+                failed.append((file, f"{proc.returncode}, err msg:{err}"))
     return failed, success
 
 
 def encrypt_files(
     sec_key: str, pub_key: List[str], files: List[str]
-) -> Tuple[List[Tuple[str, int]], List[str]]:
+) -> Tuple[List[Tuple[str, str]], List[str]]:
     failed = []
     success = []
     pub_keys = [["--recipient_pk", key] for key in pub_key]
@@ -60,25 +61,27 @@ def encrypt_files(
         out_file = add_suffix(file)
         with open(out_file, "w") as outf, open(file, "r") as inf:
             logging.info(f"processing file: {file}")
-            proc = subprocess.run(
+            proc = Popen(
                 ["crypt4gh", "encrypt", "--sk", sec_key, *pub_keys],
                 stdin=inf,
                 stdout=outf,
                 shell=False,
+                stderr=PIPE,
             )
+            _, err = proc.communicate()
             logging.info(f"output {proc}")
             if proc.returncode == 0:
                 success.append(file)
             else:
-                failed.append((file, proc.returncode))
+                failed.append((file, f"{proc.returncode}, err msg:{err}"))
     return failed, success
 
 
 def process_output(failed: List[Tuple], success: List[str], task: str) -> None:
-    print(f"Total file processed {len(failed)+len(success)}")
-    print(f"Files successfully {task}ed: {len(success)}")
+    print(f"Total file processed \U0001F916: {len(failed)+len(success)}")
+    print(f"Files successfully \U0001F973: {task}ed: {len(success)}")
     for file in success:
         print(file)
-    print(f"Files failed to {task}: {len(failed)}")
+    print(f"Files failed to {task} \U0001F631: {len(failed)}")
     for file in failed:
         print(f"file: {file[0]}, err code {file[1]}")

@@ -35,12 +35,17 @@ def cli_parser() -> None:
     parser.add_argument(
         "--pubkey",
         "-pks",
+        nargs="*",
         type=str,
         help="recipient public key, supports multiple public keys",
     )
     args = parser.parse_args()
     logging.info(f"Task received {args.task[0]}")
+    # print(args.pubkey)
     if args.task[0] == "encrypt":
+        if args.pubkey is None:
+            print("Public key is missing : -pks cannot be empty for encrypt task")
+            return
         allfiles = get_files(args.filepath[0])
         f, s = encrypt_files(
             sec_key=args.secret[0], pub_key=args.pubkey, files=allfiles

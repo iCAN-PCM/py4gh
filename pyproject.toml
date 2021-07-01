@@ -17,4 +17,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-p4gh = "py4gh.main:cli_parser"
+py4gh = "py4gh.main:cli_parser"
